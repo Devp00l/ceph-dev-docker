@@ -42,10 +42,24 @@ clone from, e.g. `https://github.com/ceph/ceph.git`:
 Now switch or create your development branch using `git checkout` or `git
 branch`.
 
+### image build
+
+    # cd /ceph
+    # ./install-deps.sh
+    # ./do_cmake.sh
+    # cd /ceph/build
+    # cmake -DWITH_PYTHON3=ON -DWITH_TESTS=NO ..
+    # make -j4
+    # pip2 install -r /ceph/src/pybind/mgr/dashboard_v2/requirements.txt
+
 ### Starting the Container and building Ceph
 
 Now start up the container, by mounting the local git clone directory as
 `/ceph`:
+=======
+After this command has finished you can close the running docker
+
+### Running the container with all dependencies installed
 
     # docker run -itd \
       -v $PWD:/ceph \
