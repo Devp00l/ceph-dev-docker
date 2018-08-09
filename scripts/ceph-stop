@@ -1,0 +1,13 @@
+#!/bin/bash
+#set -e
+
+cd /ceph/build
+mkdir -p /mnt/cephfs
+
+fusermount -u /mnt/cephfs
+ps | grep fuse | awk '{print $1}' | xargs kill -9
+
+if [ -f /ceph/build/out/mgr.x.log ]; then
+  rm -rf /ceph/build/out/*
+  ../src/stop.sh
+fi

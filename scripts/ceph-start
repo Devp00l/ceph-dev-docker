@@ -1,0 +1,156 @@
+#!/bin/bash
+#set -e
+export PATH=/scripts:$PATH:/ceph/build/bin
+
+#--------------------
+# Spin up the cluster
+#--------------------
+
+function spinUpCluster {
+  cd /ceph/build
+  rm -rf /ceph/build/out/*
+  find /ceph/src -name \*.pyc -delete
+
+  RGW=1 MGR=1 MDS=2 MON=1 OSD=8  ../src/vstart.sh -d -n -x
+  ceph mgr module enable volumes
+}
+
+#--------------
+# Configure RGW
+#--------------
+
+function confRgw {
+  echo "rgw configuration"
+  radosgw-admin user create --uid=dev --display-name=Developer --system
+  ceph dashboard set-rgw-api-user-id dev
+  ceph dashboard set-rgw-api-access-key `./bin/radosgw-admin user info --uid=dev | jq -r ".keys[0].access_key"`
+  ceph dashboard set-rgw-api-secret-key `./bin/radosgw-admin user info --uid=dev | jq -r ".keys[0].secret_key"`
+}
+
+#-----------------------------
+# Add test pool to create RBDs
+#-----------------------------
+
+function createRbdPool {
+  echo "Create rbd pool"
+  #rbd pool normal
+  ceph osd pool create rbd.a 4
+  ceph osd pool application enable rbd.a rbd
+}
+
+function createCachePool {
+  # $1 = name
+  # $2 = pgs
+  ceph osd pool create $1.main $2
+  ceph osd pool create $1.cache $2
+  ceph osd tier add $1.main $1.cache
+  ceph osd tier cache-mode $1.cache writeback
+  ceph osd tier set-overlay $1.main $1.cache
+  ceph osd pool set $1.cache hit_set_type bloom
+}
+
+function createRbdWithCachePool {
+  echo "Create rbd pool bonded with a cache pool"
+  createCachePool rbd.b 4
+  ceph osd pool application enable rbd.b.cache rbd
+}
+
+function createCephFs {
+  echo "Create an cephfs data and meta data pool"
+  ceph osd pool create cephfs.b.data 32
+  ceph osd pool create cephfs.b.meta 16
+  ceph osd pool application enable cephfs.b.data cephfs # is not enforced yet
+  ceph osd pool application enable cephfs.b.meta cephfs # is not enforced yet
+  ceph fs flag set enable_multiple true
+  ceph fs new b cephfs.b.meta cephfs.b.data # bekommt den namen a am ende (vermutung weil auf mon a)
+}
+
+function createCephFsCacheTier {
+  createCachePool cephfs.b.data 8
+  createCachePool cephfs.b.meta 4
+  ceph osd pool application enable cephfs.b.data.main cephfs
+  ceph osd pool application enable cephfs.b.data.cache cephfs
+  ceph osd pool application enable cephfs.b.meta.main cephfs
+  ceph osd pool application enable cephfs.b.meta.cache cephfs
+  ceph fs flag set enable_multiple true
+  ceph fs new c cephfs.b.meta.main cephfs.b.data.main
+}
+
+#------------------------
+# Dashboard configuration
+#------------------------
+function dashboard {
+  echo "dahboard configuration"
+
+  echo "development settings"
+  # Development settings
+  ceph dashboard set-enable-browsable-api true
+  ceph dashboard set-audit-api-enabled true
+  ceph dashboard debug enable
+
+  echo "set port"
+  # By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
+  ceph config set mgr mgr/dashboard/x/server_port 8382
+  # only ssl port will be used - but I will set the native port two
+  ceph config set mgr mgr/dashboard/x/ssl_server_port 8383
+  # make sure prometheus is disabled
+  ceph mgr module disable prometheus
+}
+
+function dashboard_externals {
+  echo "connect apis"
+  # Connect to APIs
+  ceph dashboard set-grafana-api-url 'http://localhost:3000'
+  ceph dashboard set-prometheus-api-host 'http://localhost:9090'
+  ceph dashboard set-alertmanager-api-host 'http://localhost:9093'
+
+  echo "starting modules"
+  ceph mgr module enable prometheus
+}
+
+#---------------------
+# Starting mgr modules
+#---------------------
+function mgrModules {
+  reload-dashboard
+  # Only the first time you have to wait 10s if it's created it won't change
+  # But it will prevent to target 'null'
+  sleep 20
+  set-proxy
+}
+
+
+#-------------
+# Mount cephfs (only once)
+#-------------
+
+function mount_cephfs {
+  # $1 - name of cephfs
+  if [ -z "$(ps | grep fuse | awk '{print $1}')" ]; then
+    cd /ceph/build
+    rm -r /mnt/cephfs
+    mkdir /mnt/cephfs
+    sleep 3
+    ceph-fuse -d -f --client_mds_namespace $1 /mnt/cephfs &
+    sleep 3
+  fi
+}
+
+#--------------------------------
+# Spin up cluster with everything
+#--------------------------------
+function goCluster {
+  spinUpCluster # a <- cephfs name
+  confRgw
+  #createRbdPool
+  #createRbdWithCachePool
+  #createCephFs # b <- cephfs name
+  #createCephFsCacheTier # c <- cephfs name
+  dashboard
+  #dashboard_externals
+  mgrModules
+  #mount_cephfs a # Let's the manager go wild after some time
+}
+
+goCluster
+#addCephfsData # I reset my cluster to often

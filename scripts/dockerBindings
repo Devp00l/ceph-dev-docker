@@ -1,0 +1,72 @@
+# Source this to have some usefull shortcuts
+export PATH=/scripts:$PATH:/ceph/build/bin
+export BUILD_DIR=../ceph/build
+
+function cdb {
+  cd /ceph/build
+}
+
+function cdd {
+  cd /ceph/src/pybind/mgr/dashboard
+}
+
+function cdf {
+  cd /ceph/src/pybind/mgr/dashboard/frontend
+}
+
+function ceph-reset {
+  ceph-stop
+  ceph-start
+}
+
+function cd-lint-python {
+    cdd
+    tox -e lint
+}
+
+function cd-unit-tests {
+    cdd
+    tox
+}
+
+function cd-traceback {
+    reload-dashboard
+    traceback-mgr
+}
+
+function cd-debug {
+    reload-dashboard
+    tail -f /ceph/build/out/mgr.x.log | grep -i --line-buffered "\[dashboard\] [^N]"
+}
+
+function traceback-mgr {
+    grep -A 30 -B 30 "Traceback" /ceph/build/out/mgr.x.log
+    tail -f /ceph/build/out/mgr.x.log | grep --line-buffered -A 30 -B 30 "Traceback"
+}
+
+function debug-mgr {
+    tail -f /ceph/build/out/mgr.x.log | grep --line-buffered "\[py\] [^N]"
+}
+
+function tox-fix-running-issus {
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  echo pip3 install tox
+}
+
+function tox-run-single-suite {
+  # $1 = filename + classname + testname
+  while true; do
+    WITH_PYTHON2=OFF tox -e py3 tests/$1
+    echo "Hit enter to retest"
+    read x
+    clear
+  done
+}
+
+# Change timezone to chicago
+cd /etc
+ln -sf ../usr/share/zoneinfo/America/Chicago localtime

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+rm -rf /ceph/build/out/*
+find /ceph/src -name \*.pyc -delete

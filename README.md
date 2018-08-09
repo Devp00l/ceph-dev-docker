@@ -86,6 +86,7 @@ Now start up the container, by mounting the local git clone directory as
       -v <CEPH_ROOT>:/ceph \
       -v <CCACHE_ROOT>:/root/.ccache \
       -v <CEPH_DEV_DOCKER_ROOT>/shared:/shared \
+      -v <CEPH_DEV_DOCKER_ROOT>/scripts:/scripts \
       --net=host \
       --name=ceph-dev \
       --hostname=ceph-dev \
@@ -175,6 +176,7 @@ For example:
       -v <CEPH_ROOT>:/ceph \
       -v <CCACHE_ROOT>:/root/.ccache \
       -v <CEPH_DEV_DOCKER_ROOT>/shared:/shared \
+      -v <CEPH_DEV_DOCKER_ROOT>/scripts:/scripts \
       --net=host \
       --name=new-ceph-container \
       --hostname=new-ceph-container \
