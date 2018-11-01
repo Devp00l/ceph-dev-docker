@@ -47,7 +47,7 @@ branch`.
 Now start up the container, by mounting the local git clone directory as
 `/ceph`:
 
-    # docker run -itd \
+    # docker run -it \
       -v <pathToCephRepo>:/ceph \
       -v $PWD/scripts:/scripts \
       -v <pathToCCacheDir>:/root/.ccache \
@@ -59,7 +59,6 @@ Now start up the container, by mounting the local git clone directory as
       /bin/bash
 
 Lets walk through some of the flags from the above command:
-- `-d`: runs the container shell in detach mode
  - `<pathToCCacheDir>`: the directory where ccache will store its data
  - `--name`: custom name for the container, this can be used for managing
     the container
