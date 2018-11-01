@@ -5,7 +5,7 @@ set -e
 cd /ceph/build
 clear-log-and-pyc
 
-RGW=1 ../src/vstart.sh -d -n -x
+RGW=1 MDS=1 MON=1 OSD=3  ../src/vstart.sh -d -n -x
 
 #--------------
 # Configure RGW
