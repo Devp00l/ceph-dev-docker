@@ -24,4 +24,5 @@ ceph dashboard set-rgw-api-secret-key `./bin/radosgw-admin user info --uid=dev |
 ceph osd pool create rbdPool 16
 ceph osd pool application enable rbdPool rbd
 
+ceph mgr module enable prometheus
 reload-dashboard

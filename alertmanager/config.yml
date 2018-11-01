@@ -1,0 +1,7 @@
+route:
+    receiver: 'ceph-dashboard'
+
+receivers:
+    - name: 'ceph-dashboard'
+      webhook_configs:
+      - url: "http://localhost:8383/api" #/prometheus

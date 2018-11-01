@@ -209,11 +209,30 @@ After starting all containers, the following external services will be available
 | -------------- | --------------------- | -------------------------- | ----- |
 | Grafana        | http://localhost:3000 | admin                      | admin |
 | Prometheus     | http://localhost:9090 | -                          | -     |
+| Alertmanager   | http://localhost:9093 | -                          | -     |
 | Node Exporter  | http://localhost:9100 | -                          | -     |
 | Keycloak       | http://localhost:8080 | admin                      | admin |
 | LDAP           | ldap://localhost:2389 | cn=admin,dc=example,dc=org | admin |
 | PHP LDAP Admin | https://localhost:90  | cn=admin,dc=example,dc=org | admin |
 | Shibboleth     | http://localhost:9080/Shibboleth.sso/Login | admin     | admin |
+
+### Using Prometheus
+
+All ports in use can be find in `/prometheus.yml` you can start prometheus, grafana and node exporter with:
+
+    docker-compose up grafana promethues node-exporter alertmanger
+
+In order to connect with prometheus to your running docker instance, enable prometheus in it with:
+
+    ceph mgr module enable prometheus
+
+To verfiy that it is running go to:
+
+    http://localhost:9100/metrics
+
+You can verify that prometheus is running by browsering prot 9090:
+
+    http://localhost:9090
 
 ### Configure SSO
 
