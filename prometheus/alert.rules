@@ -1,0 +1,20 @@
+groups:
+- name: test
+  rules:
+  - alert: thisWillFail
+    expr: up == 1
+    for: 2s
+    labels:
+      severity: page
+    annotations:
+      summary: "Instance {{ $labels.instance }} is up - oh nooooo"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been up for more than 2 seconds! Kill it!!!"
+
+  - alert: high_load
+    expr: node_load1 > 2.5
+    for: 30s
+    labels:
+      severity: page
+    annotations:
+      summary: "Instance {{ $labels.instance }} under high load (2.5)"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} is under high load (2.5)."

@@ -36,7 +36,7 @@ function cd-traceback {
 
 function cd-debug {
     reload-dashboard
-    tail -f /ceph/build/out/mgr.x.log | grep --line-buffered "\[dashboard\] [^N]"
+    tail -f /ceph/build/out/mgr.x.log | grep -i --line-buffered "\[dashboard\] [^N]"
 }
 
 function traceback-mgr {
