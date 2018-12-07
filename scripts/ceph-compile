@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e
+# Updating the submodules can cause failures
+#set -e
 
 # Make sure all packages are up to date
 zypper ref
@@ -35,7 +36,7 @@ fi
 
 if [ -d "build" ]; then
     git submodule update -f --recursive --remote
-    git submodule update -f --init --recursive
+    git submodule update -f --recursive --init
     cd build
     cmake -DBOOST_J=$NPROC $ARGS ..
 else
