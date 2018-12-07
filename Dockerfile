@@ -19,7 +19,7 @@ RUN zypper -n install \
         python3-Werkzeug python3-bcrypt python3-Routes python3-requests \
         gcc7 gcc7-c++ libstdc++6-devel-gcc7 python2-PyJWT python3-PyJWT \
         libxmlsec1-1 libxmlsec1-nss1 libxmlsec1-openssl1 xmlsec1-devel \
-        xmlsec1-openssl-devel zsh hostname
+        xmlsec1-openssl-devel zsh hostname npm
 
 # Install google chrome
 RUN wget https://dl.google.com/linux/linux_signing_key.pub
