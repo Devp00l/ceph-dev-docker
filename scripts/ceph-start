@@ -10,6 +10,7 @@ rm -rf /ceph/build/out/*
 find /ceph/src -name \*.pyc -delete
 
 RGW=1 MDS=1 MON=1 OSD=3  ../src/vstart.sh -d -n -x
+ceph mgr module enable volumes
 
 #--------------
 # Configure RGW
