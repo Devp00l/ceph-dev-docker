@@ -9,45 +9,64 @@ cd /ceph/build
 rm -rf /ceph/build/out/*
 find /ceph/src -name \*.pyc -delete
 
-RGW=1 MDS=1 MON=1 OSD=3  ../src/vstart.sh -d -n -x
+RGW=1 MGR=1 MDS=1 MON=1 OSD=3  ../src/vstart.sh -d -n -x
 ceph mgr module enable volumes
 
 #--------------
 # Configure RGW
 #--------------
 
+echo "rgw configuration"
+echo "create rgw user"
 ./bin/radosgw-admin user create --uid=dev --display-name=Developer --system
 
+echo "connect user to dashboard with id"
 ceph dashboard set-rgw-api-user-id dev
+echo "connect user to dashboard with access key"
 ceph dashboard set-rgw-api-access-key `./bin/radosgw-admin user info --uid=dev | jq .keys[0].access_key | sed -e 's/^"//' -e 's/"$//'`
+echo "connect user to dashboard with secret key"
 ceph dashboard set-rgw-api-secret-key `./bin/radosgw-admin user info --uid=dev | jq .keys[0].secret_key | sed -e 's/^"//' -e 's/"$//'`
+#ceph dashboard set-rgw-api-ssl-verify False
 
 #-----------------------------
 # Add test pool to create RBDs
 #-----------------------------
 
-ceph osd pool create rbdPool 16
+echo "test pool creation"
+ceph osd pool create rbdPool 4
 ceph osd pool application enable rbdPool rbd
+
+ceph osd pool create cachePool 4
+ceph osd pool application enable cachePool rbd
+ceph osd tier add rbdPool cachePool
+ceph osd tier cache-mode cachePool writeback
+ceph osd tier set-overlay rbdPool cachePool
+ceph osd pool set cachePool hit_set_type bloom
 
 #------------------------
 # Dashboard configuration
 #------------------------
+echo "dahboard configuration"
 
+echo "connect apis"
 # Connect to APIs
 ceph dashboard set-grafana-api-url 'http://localhost:3000'
 ceph dashboard set-prometheus-api-host 'http://localhost:9090'
 ceph dashboard set-alertmanager-api-host 'http://localhost:9093'
 
+echo "development settings"
 # Development settings
 ceph dashboard set-enable-browsable-api true
 ceph dashboard set-audit-api-enabled true
+
+echo "set port"
 # By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
 ceph config set mgr mgr/dashboard/x/server_port 8383
 
 #---------------------
 # Starting mgr modules
 #---------------------
-
+echo "starting modules"
 ceph mgr module enable prometheus
 
 reload-dashboard
