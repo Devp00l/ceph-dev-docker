@@ -4,3 +4,5 @@ set -e
 
 cd /ceph/build
 ../src/stop.sh
+rm -rf /ceph/build/out/*
+../src/stop.sh

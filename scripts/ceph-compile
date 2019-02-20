@@ -27,7 +27,7 @@ ARGS="-DWITH_PYTHON3=ON -DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 -DWITH_TESTS=O
 #Only if python3 stops working
 #ARGS="-D WITH_PYTHON3=ON -D WITH_TESTS=ON -D WITH_CCACHE=ON -D ENABLE_GIT_VERSION=OFF WITH_MGR_DASHBOARD_FRONTEND=OFF $ARGS"
 
-NPROC=${NPROC:-$(nproc --ignore=1)}
+NPROC=${NPROC:-$(nproc --ignore=2)}
 
 if [ "$MIMIC" == "true" ]; then
     rm /usr/bin/gcc
