@@ -100,7 +100,7 @@ function mgrModules {
 # Mount cephfs
 #---------------------
 
-function cephfs {
+function mount_cephfs {
   cd /ceph/build
   ps | grep fuse | awk '{print $1}' | xargs kill
   rm -r /mnt/cephfs
@@ -108,6 +108,9 @@ function cephfs {
   sleep 3
   ceph-fuse -d -f /mnt/cephfs &
   sleep 3
+}
+
+function add_cephfs_files {
   cd /mnt/cephfs
   echo "Creating dirs and files"
   mkdir -p {a,b}{1,2,3}/{c,d}{1,2,3}
@@ -125,7 +128,8 @@ function holeCluster {
   createCephFs
   dashboard
   mgrModules
+  mount_cephfs
 }
 
 holeCluster
-cephfs
+add_cephfs_files
