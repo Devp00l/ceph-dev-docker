@@ -1,76 +1,131 @@
 #!/bin/bash
 #set -e
+export PATH=/scripts:$PATH:/ceph/build/bin
 
 #--------------------
 # Spin up the cluster
 #--------------------
 
-cd /ceph/build
-rm -rf /ceph/build/out/*
-find /ceph/src -name \*.pyc -delete
+function spinUpCluster {
+  cd /ceph/build
+  rm -rf /ceph/build/out/*
+  find /ceph/src -name \*.pyc -delete
 
-RGW=1 MGR=1 MDS=1 MON=1 OSD=3  ../src/vstart.sh -d -n -x
-ceph mgr module enable volumes
+  RGW=1 MGR=1 MDS=2 MON=1 OSD=3  ../src/vstart.sh -d -n -x
+  ceph mgr module enable volumes
+}
 
 #--------------
 # Configure RGW
 #--------------
 
-echo "rgw configuration"
-echo "create rgw user"
-./bin/radosgw-admin user create --uid=dev --display-name=Developer --system
-
-echo "connect user to dashboard with id"
-ceph dashboard set-rgw-api-user-id dev
-echo "connect user to dashboard with access key"
-ceph dashboard set-rgw-api-access-key `./bin/radosgw-admin user info --uid=dev | jq .keys[0].access_key | sed -e 's/^"//' -e 's/"$//'`
-echo "connect user to dashboard with secret key"
-ceph dashboard set-rgw-api-secret-key `./bin/radosgw-admin user info --uid=dev | jq .keys[0].secret_key | sed -e 's/^"//' -e 's/"$//'`
-#ceph dashboard set-rgw-api-ssl-verify False
+function confRgw {
+  echo "rgw configuration"
+  radosgw-admin user create --uid=dev --display-name=Developer --system
+  ceph dashboard set-rgw-api-user-id dev
+  ceph dashboard set-rgw-api-access-key `./bin/radosgw-admin user info --uid=dev | jq -r ".keys[0].access_key"`
+  ceph dashboard set-rgw-api-secret-key `./bin/radosgw-admin user info --uid=dev | jq -r ".keys[0].secret_key"`
+}
 
 #-----------------------------
 # Add test pool to create RBDs
 #-----------------------------
 
-echo "test pool creation"
-ceph osd pool create rbdPool 4
-ceph osd pool application enable rbdPool rbd
+function createRbdPool {
+  echo "Create rbd pool"
+  #rbd pool normal
+  ceph osd pool create rbd.a 4
+  ceph osd pool application enable rbd.a rbd
+}
 
-ceph osd pool create cachePool 4
-ceph osd pool application enable cachePool rbd
-ceph osd tier add rbdPool cachePool
-ceph osd tier cache-mode cachePool writeback
-ceph osd tier set-overlay rbdPool cachePool
-ceph osd pool set cachePool hit_set_type bloom
+function createRbdWithCachePool {
+  echo "Create rbd pool bonded with a cache pool"
+  ceph osd pool create rbd.b.main 4
+  ceph osd pool create rbd.b.cache 4
+  ceph osd pool application enable rbd.b.cache rbd
+  ceph osd tier add rbd.b.main rbd.b.cache
+  ceph osd tier cache-mode rbd.b.cache writeback
+  ceph osd tier set-overlay rbd.b.main rbd.b.cache
+  ceph osd pool set rbd.b.cache hit_set_type bloom
+}
+
+function createCephFs {
+  echo "Create an cephfs data and meta data pool"
+  ceph osd pool create cephfs.a.data 8
+  ceph osd pool create cephfs.a.meta 4
+  ceph osd pool application enable cephfs.a.data cephfs # is not enforced yet
+  ceph osd pool application enable cephfs.a.meta cephfs # is not enforced yet
+  ceph fs flag set enable_multiple true
+  ceph fs new cephfs.a cephfs.a.meta cephfs.a.data # bekommt den namen a am ende (vermutung weil auf mon a)
+}
 
 #------------------------
 # Dashboard configuration
 #------------------------
-echo "dahboard configuration"
+function dashboard {
+  echo "dahboard configuration"
 
-echo "connect apis"
-# Connect to APIs
-ceph dashboard set-grafana-api-url 'http://localhost:3000'
-ceph dashboard set-prometheus-api-host 'http://localhost:9090'
-ceph dashboard set-alertmanager-api-host 'http://localhost:9093'
+  echo "connect apis"
+  # Connect to APIs
+  ceph dashboard set-grafana-api-url 'http://localhost:3000'
+  ceph dashboard set-prometheus-api-host 'http://localhost:9090'
+  ceph dashboard set-alertmanager-api-host 'http://localhost:9093'
 
-echo "development settings"
-# Development settings
-ceph dashboard set-enable-browsable-api true
-ceph dashboard set-audit-api-enabled true
+  echo "development settings"
+  # Development settings
+  ceph dashboard set-enable-browsable-api true
+  ceph dashboard set-audit-api-enabled true
 
-echo "set port"
-# By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
-ceph config set mgr mgr/dashboard/x/server_port 8383
+  echo "set port"
+  # By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
+  ceph config set mgr mgr/dashboard/x/server_port 8383
+}
 
 #---------------------
 # Starting mgr modules
 #---------------------
-echo "starting modules"
-ceph mgr module enable prometheus
+function mgrModules {
+  echo "starting modules"
+  ceph mgr module enable prometheus
 
-reload-dashboard
-# Only the first time you have to wait 10s if it's created it won't change
-# But it will prevent to target 'null'
-sleep 10
-set-proxy
+  reload-dashboard
+  # Only the first time you have to wait 10s if it's created it won't change
+  # But it will prevent to target 'null'
+  sleep 10
+  set-proxy
+}
+
+
+#---------------------
+# Mount cephfs
+#---------------------
+
+function cephfs {
+  cd /ceph/build
+  ps | grep fuse | awk '{print $1}' | xargs kill
+  rm -r /mnt/cephfs
+  mkdir /mnt/cephfs
+  sleep 3
+  ceph-fuse -d -f /mnt/cephfs &
+  sleep 3
+  cd /mnt/cephfs
+  echo "Creating dirs and files"
+  mkdir -p {a,b}{1,2,3}/{c,d}{1,2,3}
+  for i in {a,b}{1,2,3}/{c,d}{1,2,3}/f{1,2,3}; do
+    dd if=/dev/zero of=$i$(date +%N) bs=$((($(date +%N)) % 50))M count=1
+  done
+}
+
+
+function holeCluster {
+  spinUpCluster
+  confRgw
+  createRbdPool
+  createRbdWithCachePool
+  createCephFs
+  dashboard
+  mgrModules
+}
+
+holeCluster
+cephfs
