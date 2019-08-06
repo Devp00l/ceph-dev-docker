@@ -48,3 +48,6 @@ function debug-mgr {
     tail -f /ceph/build/out/mgr.x.log | grep --line-buffered "\[py\] [^N]"
 }
 
+# Change timezone to chicago
+cd /etc
+ln -sf ../usr/share/zoneinfo/America/Chicago localtime
