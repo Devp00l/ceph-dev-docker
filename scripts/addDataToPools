@@ -1,0 +1,42 @@
+#!/bin/zsh
+
+obj=/root/o
+
+dd if=/dev/zero of=${obj}0 bs=8K count=1
+dd if=/dev/zero of=${obj}1 bs=256K count=1
+dd if=/dev/zero of=${obj}2 bs=32K count=1
+dd if=/dev/zero of=${obj}3 bs=64K count=1
+dd if=/dev/zero of=${obj}4 bs=16K count=1
+dd if=/dev/zero of=${obj}5 bs=128K count=1
+dd if=/dev/zero of=${obj}6 bs=4K count=1
+dd if=/dev/zero of=${obj}7 bs=512K count=1
+
+
+function wPool {
+  rados -p $1 put o$i $obj$((($(date +%N) + $i) % 8))
+  i=$(($i+1))
+}
+
+function rPool {
+  rados -p $1 ls | while read x; do
+    if [ $((($(date +%N)) % 8)) -eq 0 ]; then
+      rados -p $1 get $x /dev/zero
+    fi
+  done
+}
+
+function rwOnPool {
+  #$1 = pool name
+  for sth in {1..5}; do
+    wPool $1 &
+  done
+  rPool $1 &
+}
+
+i=$(date +%N)
+for sth in {1..100}; do
+  ceph osd lspools | awk '{print $2}' | while read p; do
+    rwOnPool $p &
+    #sleep 1
+  done
+done
