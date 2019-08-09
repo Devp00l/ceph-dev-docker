@@ -1,5 +1,4 @@
 # Source this to have some usefull shortcuts
-
 export PATH=/scripts:$PATH:/ceph/build/bin
 
 function cdb {

@@ -34,13 +34,13 @@ function confRgw {
 function createRbdPool {
   echo "Create rbd pool"
   #rbd pool normal
-  ceph osd pool create rbd.a 4
+  ceph osd pool create rbd.a 16
   ceph osd pool application enable rbd.a rbd
 }
 
 function createRbdWithCachePool {
   echo "Create rbd pool bonded with a cache pool"
-  ceph osd pool create rbd.b.main 4
+  ceph osd pool create rbd.b.main 8
   ceph osd pool create rbd.b.cache 4
   ceph osd pool application enable rbd.b.cache rbd
   ceph osd tier add rbd.b.main rbd.b.cache
@@ -51,8 +51,8 @@ function createRbdWithCachePool {
 
 function createCephFs {
   echo "Create an cephfs data and meta data pool"
-  ceph osd pool create cephfs.a.data 8
-  ceph osd pool create cephfs.a.meta 4
+  ceph osd pool create cephfs.a.data 64
+  ceph osd pool create cephfs.a.meta 32
   ceph osd pool application enable cephfs.a.data cephfs # is not enforced yet
   ceph osd pool application enable cephfs.a.meta cephfs # is not enforced yet
   ceph fs flag set enable_multiple true

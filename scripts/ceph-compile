@@ -26,7 +26,6 @@ function beforeBuild {
   git submodule update -f --recursive --remote
   git submodule update -f --recursive --init
 }
-beforeBuild
 
 function compileCeph {
   cd /ceph
@@ -57,7 +56,6 @@ function compileCeph {
 
   ccache make -j$NPROC
 }
-compileCeph
 
 function createTestEnvironments {
   setupVirtualenv=/ceph/src/tools/setup-virtualenv.sh
@@ -66,4 +64,9 @@ function createTestEnvironments {
   cd dashboard
   $setupVirtualenv /ceph/build/mgr-dashboard-virtualenv
 }
+
+# Use all functions to compile ceph
+
+beforeBuild
+compileCeph
 createTestEnvironments
