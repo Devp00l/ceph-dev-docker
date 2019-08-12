@@ -3,7 +3,7 @@ version: '3'
 services:
   node-exporter:
     user: 'root'
-    image: 'quay.io/prometheus/node-exporter'
+    image: 'prom/node-exporter'
     volumes:
       - '/proc:/host/proc:ro'
       - '/sys:/host/sys:ro'
@@ -13,14 +13,14 @@ services:
               '--path.sysfs', '/host/sys',
               '--collector.filesystem.ignored-mount-points', '^/(sys|proc|dev|host|etc)($$|/)']
   prometheus:
-    image: 'quay.io/prometheus/prometheus'
+    image: 'prom/prometheus'
     volumes:
       - './prometheus:/etc/prometheus'
     container_name: 'prometheus'
     network_mode: 'host'
 
   alertmanager:
-    image: 'quay.io/prometheus/alertmanager'
+    image: 'prom/alertmanager'
     volumes:
       - './alertmanager/:/etc/alertmanager/'
     container_name: 'alertmanager'
@@ -36,6 +36,10 @@ services:
     container_name: 'grafana'
     network_mode: 'host'
     volumes:
+      - './grafana/ceph-dashboards.yaml:/etc/grafana/provisioning/dashboards/ceph-dashboards.yaml:ro'
+      - './grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro'
+      - './grafana/grafana.ini:/etc/grafana/grafana.ini:ro'
+      - '../ceph-dev/monitoring/grafana/dashboards:/var/lib/grafana/dashboards/:ro'
       - './grafana.ini:/etc/grafana/grafana.ini:ro'
 
   keycloak:
@@ -72,3 +76,9 @@ services:
       - "9443:9443"
     links:
       - openldap
+
+  haproxy:
+    image: 'haproxy'
+    volumes:
+      - './haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg'
+    network_mode: 'host'
