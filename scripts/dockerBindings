@@ -47,6 +47,15 @@ function debug-mgr {
     tail -f /ceph/build/out/mgr.x.log | grep --line-buffered "\[py\] [^N]"
 }
 
+function tox-fix-running-issus {
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 uninstall -y tox
+  pip3 install -y tox
+}
+
 # Change timezone to chicago
 cd /etc
 ln -sf ../usr/share/zoneinfo/America/Chicago localtime
