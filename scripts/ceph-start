@@ -51,12 +51,12 @@ function createRbdWithCachePool {
 
 function createCephFs {
   echo "Create an cephfs data and meta data pool"
-  ceph osd pool create cephfs.a.data 16
-  ceph osd pool create cephfs.a.meta 8
-  ceph osd pool application enable cephfs.a.data cephfs # is not enforced yet
-  ceph osd pool application enable cephfs.a.meta cephfs # is not enforced yet
+  ceph osd pool create cephfs.b.data 32
+  ceph osd pool create cephfs.b.meta 16
+  ceph osd pool application enable cephfs.b.data cephfs # is not enforced yet
+  ceph osd pool application enable cephfs.b.meta cephfs # is not enforced yet
   ceph fs flag set enable_multiple true
-  ceph fs new cephfs.a cephfs.a.meta cephfs.a.data # bekommt den namen a am ende (vermutung weil auf mon a)
+  ceph fs new cephfs.b cephfs.b.meta cephfs.b.data # bekommt den namen a am ende (vermutung weil auf mon a)
 }
 
 #------------------------
@@ -65,33 +65,38 @@ function createCephFs {
 function dashboard {
   echo "dahboard configuration"
 
+  echo "development settings"
+  # Development settings
+  ceph dashboard set-enable-browsable-api true
+  ceph dashboard set-audit-api-enabled true
+  ceph dashboard debug enable
+
+  echo "set port"
+  # By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
+  ceph config set mgr mgr/dashboard/x/server_port 8382
+  # only ssl port will be used - but I will set the native port two
+  ceph config set mgr mgr/dashboard/x/ssl_server_port 8383
+}
+
+function dashboard_externals {
   echo "connect apis"
   # Connect to APIs
   ceph dashboard set-grafana-api-url 'http://localhost:3000'
   ceph dashboard set-prometheus-api-host 'http://localhost:9090'
   ceph dashboard set-alertmanager-api-host 'http://localhost:9093'
 
-  echo "development settings"
-  # Development settings
-  ceph dashboard set-enable-browsable-api true
-  ceph dashboard set-audit-api-enabled true
-
-  echo "set port"
-  # By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
-  ceph config set mgr mgr/dashboard/x/server_port 8383
+  echo "starting modules"
+  ceph mgr module enable prometheus
 }
 
 #---------------------
 # Starting mgr modules
 #---------------------
 function mgrModules {
-  echo "starting modules"
-  ceph mgr module enable prometheus
-
   reload-dashboard
   # Only the first time you have to wait 10s if it's created it won't change
   # But it will prevent to target 'null'
-  sleep 10
+  sleep 20
   set-proxy
 }
 
@@ -117,12 +122,13 @@ function mount_cephfs {
 function holeCluster {
   spinUpCluster
   confRgw
-  createRbdPool
+  #createRbdPool
   #createRbdWithCachePool
   #createCephFs
   dashboard
+  #dashboard_externals
   mgrModules
-  mount_cephfs
+  mount_cephfs # Let's the manager go wild after some time
 }
 
 holeCluster

@@ -4,5 +4,5 @@ set -e
 ceph mgr module disable dashboard
 find /ceph/src/pybind/mgr/dashboard -name \*.pyc -delete
 
-sleep 2
+#sleep 2
 ceph mgr module enable dashboard --force

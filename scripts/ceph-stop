@@ -1,8 +1,13 @@
 #!/bin/bash
-
-set -e
+#set -e
 
 cd /ceph/build
+#rm -rv /mnt/cephfs/*
+mkdir -p /mnt/cephfs
 ../src/stop.sh
+sleep 3
+
+fusermount -u /mnt/cephfs
+ps | grep fuse | awk '{print $1}' | xargs kill -9
 rm -rf /ceph/build/out/*
 ../src/stop.sh

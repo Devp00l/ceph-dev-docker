@@ -23,6 +23,7 @@ RUN zypper -n install \
         python3-pyOpenSSL \
         python3-requests \
         python3-Routes \
+        attr,
         python3-Werkzeug
 
 # temporary fix for error regarding version of tempora

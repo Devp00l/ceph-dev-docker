@@ -1,5 +1,6 @@
 # Source this to have some usefull shortcuts
 export PATH=/scripts:$PATH:/ceph/build/bin
+export BUILD_DIR=../ceph/build
 
 function cdb {
   cd /ceph/build
@@ -53,7 +54,17 @@ function tox-fix-running-issus {
   pip3 uninstall -y tox
   pip3 uninstall -y tox
   pip3 uninstall -y tox
-  pip3 install -y tox
+  echo pip3 install tox
+}
+
+function tox-run-single-suite {
+  # $1 = filename + classname + testname
+  while true; do
+    WITH_PYTHON2=OFF tox -e py3 tests/$1
+    echo "Hit enter to retest"
+    read x
+    clear
+  done
 }
 
 # Change timezone to chicago

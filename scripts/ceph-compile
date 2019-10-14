@@ -63,6 +63,8 @@ function createTestEnvironments {
   $setupVirtualenv /ceph/build/mgr-virtualenv
   cd dashboard
   $setupVirtualenv /ceph/build/mgr-dashboard-virtualenv
+  # For debugging
+  pip install pydevd-pycharm~=191.6605.12
 }
 
 # Use all functions to compile ceph

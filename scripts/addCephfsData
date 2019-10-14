@@ -1,8 +1,54 @@
 #!/bin/zsh
+# Adds data to mounted cephfs
+
+#$1 = multiplier
+multiplier=1
+if [ -n $1 ]; then
+  multiplier=$1
+fi
 
 cd /mnt/cephfs
-echo "Creating dirs and files"
-mkdir -p {a,b}{1,2,3}/{c,d}{1,2,3}
-for i in {a,b}{1,2,3}/{c,d}{1,2,3}/f{1,2,3}; do
-  dd if=/dev/zero of=$i$(date +%N) bs=$((($(date +%N)) % 50))M count=1
+
+echo "Creating 81 directories"
+# 3*3*3*3 = 81
+mkdir -p a{1,2,3}/b{1,2,3}/c{1,2,3}/d{1,2,3}
+
+function filler {
+  dd if=/dev/zero of=$1$(date +%N) bs=$((($(date +%N)) % 1000 * $multiplier))K count=1
+}
+
+echo "Creating 360 files - this can take a while"
+# 3 * 3 = 9
+for i in a{1,2,3}/file{1,2,3}; do
+  filler $i
 done
+# 9 * 3 = 27
+for i in a{1,2,3}/b{1,2,3}/file{1,2,3}; do
+  filler $i
+done
+# 27 * 3 = 81
+for i in a{1,2,3}/b{1,2,3}/c{1,2,3}/file{1,2,3}; do
+  filler $i
+done
+# 81 * 3 = 243
+for i in a{1,2,3}/b{1,2,3}/c{1,2,3}/d{1,2,3}/file{1,2,3}; do
+  filler $i
+done
+# 9 + 27 + 81 + 243 = 360 Files will be created.
+
+setfattr -n ceph.quota.max_bytes -v 100000000 /mnt/cephfs/a1
+setfattr -n ceph.quota.max_bytes -v 200000000 /mnt/cephfs/a1/b1
+setfattr -n ceph.quota.max_bytes -v 300000000 /mnt/cephfs/a1/b1/c1
+setfattr -n ceph.quota.max_bytes -v 400000000 /mnt/cephfs/a1/b1/c1/d1
+ceph fs set a allow_new_snaps true
+mkdir /mnt/cephfs/a1/.snap/snap1_a
+mkdir /mnt/cephfs/a1/b1/.snap/snap1_b
+mkdir /mnt/cephfs/a1/b1/c1/.snap/snap1_c
+sleep 2
+mkdir /mnt/cephfs/a1/.snap/snap2_a
+mkdir /mnt/cephfs/a1/b1/.snap/snap2_b
+mkdir /mnt/cephfs/a1/b1/c1/.snap/snap2_c
+sleep 2
+mkdir /mnt/cephfs/a1/.snap/snap3_a
+mkdir /mnt/cephfs/a1/b1/.snap/snap3_b
+mkdir /mnt/cephfs/a1/b1/c1/.snap/snap3_c
