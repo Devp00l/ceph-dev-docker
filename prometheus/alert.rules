@@ -12,7 +12,7 @@ groups:
       description: "{{ $labels.instance }} of job {{ $labels.job }} load is over 0!"
 
   - alert: load_1
-    expr: node_load1 > 1 and node_load1 > 3
+    expr: node_load1 > 1 and node_load1 < 3
     for: 30s
     labels:
       severity: page
@@ -21,7 +21,7 @@ groups:
       description: "{{ $labels.instance }} of job {{ $labels.job }} with load between 1 and 3."
 
   - alert: load_2
-    expr: node_load1 > 2 and node_load1 > 4
+    expr: node_load1 > 2 and node_load1 < 4
     for: 25s
     labels:
       severity: page
@@ -30,7 +30,7 @@ groups:
       description: "{{ $labels.instance }} of job {{ $labels.job }} with load between 2 and 4."
 
   - alert: load_3
-    expr: node_load1 > 3 and node_load1 > 5
+    expr: node_load1 > 3 and node_load1 < 5
     for: 20s
     labels:
       severity: page
@@ -39,7 +39,7 @@ groups:
       description: "{{ $labels.instance }} of job {{ $labels.job }} with load between 3 and 5."
 
   - alert: load_4
-    expr: node_load1 > 4 and node_load1 > 6
+    expr: node_load1 > 4 and node_load1 < 6
     for: 15s
     labels:
       severity: page
@@ -48,7 +48,7 @@ groups:
       description: "{{ $labels.instance }} of job {{ $labels.job }} with load between 4 and 6."
 
   - alert: load_5
-    expr: node_load1 > 5 and node_load1 > 7
+    expr: node_load1 > 5 and node_load1 < 7
     for: 10s
     labels:
       severity: page
