@@ -10,7 +10,7 @@ RUN zypper -n dup
 RUN zypper -n install \
         iproute2 net-tools-deprecated zsh lttng-ust-devel babeltrace-devel \
         bash vim tmux git aaa_base ccache wget jq google-opensans-fonts psmisc \
-        python python3-pip \
+        python python3-pip rpm-build \
         python-devel python3-devel \
         python3-bcrypt \
         python3-CherryPy \

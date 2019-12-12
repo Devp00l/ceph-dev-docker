@@ -38,15 +38,21 @@ function createRbdPool {
   ceph osd pool application enable rbd.a rbd
 }
 
+function createCachePool {
+  # $1 = name
+  # $2 = pgs
+  ceph osd pool create $1.main $2
+  ceph osd pool create $1.cache $2
+  ceph osd tier add $1.main $1.cache
+  ceph osd tier cache-mode $1.cache writeback
+  ceph osd tier set-overlay $1.main $1.cache
+  ceph osd pool set $1.cache hit_set_type bloom
+}
+
 function createRbdWithCachePool {
   echo "Create rbd pool bonded with a cache pool"
-  ceph osd pool create rbd.b.main 4
-  ceph osd pool create rbd.b.cache 4
+  createCachePool rbd.b 4
   ceph osd pool application enable rbd.b.cache rbd
-  ceph osd tier add rbd.b.main rbd.b.cache
-  ceph osd tier cache-mode rbd.b.cache writeback
-  ceph osd tier set-overlay rbd.b.main rbd.b.cache
-  ceph osd pool set rbd.b.cache hit_set_type bloom
 }
 
 function createCephFs {
@@ -56,7 +62,18 @@ function createCephFs {
   ceph osd pool application enable cephfs.b.data cephfs # is not enforced yet
   ceph osd pool application enable cephfs.b.meta cephfs # is not enforced yet
   ceph fs flag set enable_multiple true
-  ceph fs new cephfs.b cephfs.b.meta cephfs.b.data # bekommt den namen a am ende (vermutung weil auf mon a)
+  ceph fs new b cephfs.b.meta cephfs.b.data # bekommt den namen a am ende (vermutung weil auf mon a)
+}
+
+function createCephFsCacheTier {
+  createCachePool cephfs.b.data 8
+  createCachePool cephfs.b.meta 4
+  ceph osd pool application enable cephfs.b.data.main cephfs
+  ceph osd pool application enable cephfs.b.data.cache cephfs
+  ceph osd pool application enable cephfs.b.meta.main cephfs
+  ceph osd pool application enable cephfs.b.meta.cache cephfs
+  ceph fs flag set enable_multiple true
+  ceph fs new c cephfs.b.meta.main cephfs.b.data.main
 }
 
 #------------------------
@@ -106,12 +123,13 @@ function mgrModules {
 #-------------
 
 function mount_cephfs {
+  # $1 - name of cephfs
   if [ -z "$(ps | grep fuse | awk '{print $1}')" ]; then
     cd /ceph/build
     rm -r /mnt/cephfs
     mkdir /mnt/cephfs
     sleep 3
-    ceph-fuse -d -f /mnt/cephfs &
+    ceph-fuse -d -f --client_mds_namespace $1 /mnt/cephfs &
     sleep 3
   fi
 }
@@ -120,15 +138,16 @@ function mount_cephfs {
 # Spin up cluster with everything
 #--------------------------------
 function holeCluster {
-  spinUpCluster
+  spinUpCluster # a <- cephfs name
   confRgw
   #createRbdPool
   #createRbdWithCachePool
-  #createCephFs
+  #createCephFs # b <- cephfs name
+  #createCephFsCacheTier # c <- cephfs name
   dashboard
   #dashboard_externals
   mgrModules
-  mount_cephfs # Let's the manager go wild after some time
+  mount_cephfs a # Let's the manager go wild after some time
 }
 
 holeCluster
