@@ -4,6 +4,7 @@
 #set -e
 
 function beforeBuild {
+  echo "Update installed packages"
   # Make sure all packages are up to date
   zypper ref
   zypper update -y
@@ -28,6 +29,8 @@ function beforeBuild {
 }
 
 function compileCeph {
+  clear
+  echo "Begin compiling ceph"
   cd /ceph
   #ARGS="-DWITH_PYTHON3=ON -DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 -DWITH_RADOSGW_AMQP_ENDPOINT=OFF -DENABLE_GIT_VERSION=OFF -DWITH_TESTS=ON -DWITH_CCACHE=ON $ARGS"
   ARGS="-DENABLE_GIT_VERSION=OFF -DWITH_TESTS=ON -DWITH_CCACHE=ON $ARGS"
@@ -58,6 +61,8 @@ function compileCeph {
 }
 
 function createTestEnvironments {
+  clear
+  echo "Creating test environments"
   setupVirtualenv=/ceph/src/tools/setup-virtualenv.sh
   cd /ceph/src/pybind/mgr
   $setupVirtualenv /ceph/build/mgr-virtualenv

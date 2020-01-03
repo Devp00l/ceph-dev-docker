@@ -9,11 +9,13 @@ fi
 
 cd /mnt/cephfs
 
-echo "Creating 127 directories"
+echo "Creating 130 directories"
 # 3*3*3*3 = 81
 mkdir -p a{1,2,3}/b{1,2,3}/c{1,2,3}/d{1,2,3}
 # 46 => 127
 mkdir -p s/u/p/e/r/D/e/e/p/D/i/r/e/c/t/o/r/y/W/i/t/h/M/a/n/y/D/i/r/e/c/t/o/r/i/e/s/I/n/T/h/e/D/e/e/p
+# 3 => 130
+mkdir -p superLongDirectoryName/withEvenLongerSubDirectoryName/andOfCourseAnEvenLongerSubSubDirectoryName
 
 function filler {
   dd if=/dev/zero of=$1$(date +%N) bs=$((($(date +%N)) % 1000 * $multiplier))K count=1
