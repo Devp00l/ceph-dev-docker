@@ -11,7 +11,7 @@ function spinUpCluster {
   rm -rf /ceph/build/out/*
   find /ceph/src -name \*.pyc -delete
 
-  RGW=1 MGR=1 MDS=2 MON=1 OSD=3  ../src/vstart.sh -d -n -x
+  RGW=1 MGR=1 MDS=2 MON=1 OSD=8  ../src/vstart.sh -d -n -x
   ceph mgr module enable volumes
 }
 
@@ -93,6 +93,8 @@ function dashboard {
   ceph config set mgr mgr/dashboard/x/server_port 8382
   # only ssl port will be used - but I will set the native port two
   ceph config set mgr mgr/dashboard/x/ssl_server_port 8383
+  # make sure prometheus is disabled
+  ceph mgr module disable prometheus
 }
 
 function dashboard_externals {
@@ -137,7 +139,7 @@ function mount_cephfs {
 #--------------------------------
 # Spin up cluster with everything
 #--------------------------------
-function holeCluster {
+function goCluster {
   spinUpCluster # a <- cephfs name
   confRgw
   #createRbdPool
@@ -147,8 +149,8 @@ function holeCluster {
   dashboard
   #dashboard_externals
   mgrModules
-  mount_cephfs a # Let's the manager go wild after some time
+  #mount_cephfs a # Let's the manager go wild after some time
 }
 
-holeCluster
+goCluster
 #addCephfsData # I reset my cluster to often
