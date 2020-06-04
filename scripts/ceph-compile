@@ -1,31 +1,52 @@
 #!/bin/bash
+#$1 = ceph branch to compile (default: master)
+buildBranch=master
+if [ -n "$1" ]; then
+  buildBranch=$1
+fi
 
 # Updating the submodules can cause failures
 #set -e
 
-function beforeBuild {
+function installDeps {
   echo "Update installed packages"
   # Make sure all packages are up to date
   zypper ref
   zypper update -y
+  zypper dup -y
 
   # Install all requirements to run tests
   cd /ceph/src/pybind/mgr/dashboard
   git fetch ceph
-  git checkout ceph/master
+  # Has to be changed to what you want to compile (if not set it's master)
+  git checkout ceph/$buildBranch
+  if [ "$buildBranch" == "nautilus" ]; then
+    python -m pip install --upgrade pip
+  else
+    # Doesn't exist in nautilus
+    /ceph/install-deps-python3/bin/python -m pip install --upgrade pip
+  fi
   #pip2 install --ignore-installed -r requirements.txt
   pip install --ignore-installed -r requirements.txt
 
   cd /ceph
   find . -name \*.pyc -delete
+  zypper install rpm-build -y # need to be installed in order to run install-deps.sh
   ./install-deps.sh
 
   # SSO dependencies
   # (install-deps.sh has to be run before)
   pip install python3-saml
   #pip2 install python-saml
+  echo "Installed everything - press any key to continue"
+  #read x
+}
+
+function checkoutSubmodules {
   git submodule update -f --recursive --remote
   git submodule update -f --recursive --init
+  echo "Everything checked out - press any key to continue"
+  #read x
 }
 
 function compileCeph {
@@ -58,6 +79,8 @@ function compileCeph {
   fi
 
   ccache make -j$NPROC
+  echo "compiled - press any key to create the test environments"
+  read x
 }
 
 function createTestEnvironments {
@@ -74,6 +97,7 @@ function createTestEnvironments {
 
 # Use all functions to compile ceph
 
-beforeBuild
+installDeps
+checkoutSubmodules
 compileCeph
 createTestEnvironments
