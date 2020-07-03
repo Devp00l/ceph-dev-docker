@@ -6,11 +6,22 @@ export PATH=/scripts:$PATH:/ceph/build/bin
 # Spin up the cluster
 #--------------------
 
-function spinUpCluster {
-  cd /ceph/build
+function cleanCluster {
   rm -rf /ceph/build/out/*
   find /ceph/src -name \*.pyc -delete
+  if rpm --quiet --query nfs-ganesha-ceph; then
+      if grep -q pacific /ceph/src/ceph_release; then
+          export NFS=1
+      else
+          export GANESHA=1
+      fi
+  fi
+  chmod +r /ceph/build/keyring
+  cd /ceph/build
+}
 
+function spinUpCluster {
+  cleanCluster
   RGW=1 MGR=1 MDS=2 MON=1 OSD=8  ../src/vstart.sh -d -n -x
   ceph mgr module enable volumes
 }
@@ -119,11 +130,9 @@ function mgrModules {
   set-proxy
 }
 
-
 #-------------
 # Mount cephfs (only once)
 #-------------
-
 function mount_cephfs {
   # $1 - name of cephfs
   if [ -z "$(ps | grep fuse | awk '{print $1}')" ]; then
@@ -134,6 +143,13 @@ function mount_cephfs {
     ceph-fuse -d -f --client_mds_namespace $1 /mnt/cephfs &
     sleep 3
   fi
+}
+
+# Starts cephadm - make sure vagrant VM's are running
+function startCephadm {
+  /shared/bin/setup-cephadm.sh
+  ceph orch host ls # Shows hosts
+  ceph orch device ls # Shows devices
 }
 
 #--------------------------------
@@ -150,6 +166,7 @@ function goCluster {
   #dashboard_externals
   mgrModules
   #mount_cephfs a # Let's the manager go wild after some time
+  startCephadm
 }
 
 goCluster
