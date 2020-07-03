@@ -47,7 +47,7 @@ import paramiko
 config = paramiko.SSHConfig()
 config.parse(open('/ceph/src/pybind/mgr/cephadm/ssh-config'))
 with open('/etc/hosts', 'a') as f:
-    for hostname in ['osd0', 'mgr0', 'mon0']:
+    for hostname in ['osd0', 'osd1', 'osd2', 'mgr0', 'mon0']:
         host_config = config.lookup(hostname)
         f.write('{} {}\n'.format(host_config.get('hostname'), hostname))
 EOS
@@ -55,6 +55,8 @@ EOS
 bin/ceph orch host add mgr0
 bin/ceph orch host add mon0
 bin/ceph orch host add osd0
+bin/ceph orch host add osd1
+bin/ceph orch host add osd2
 
 if [ "$refresh" -eq 1 ]; then
     echo "Refreshing device list, please wait ..."
