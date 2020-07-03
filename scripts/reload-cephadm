@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+ceph mgr module disable cephadm
+find /ceph/src/pybind/mgr/cephadm -name \*.pyc -delete
+
+#sleep 2
+ceph mgr module enable cephadm --force
+
