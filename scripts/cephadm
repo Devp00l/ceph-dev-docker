@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd /ceph/build
+../src/cephadm/cephadm $@
