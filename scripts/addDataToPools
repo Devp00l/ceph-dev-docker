@@ -2,14 +2,14 @@
 
 obj=/root/o
 
-dd if=/dev/zero of=${obj}0 bs=8K count=1
-dd if=/dev/zero of=${obj}1 bs=256K count=1
-dd if=/dev/zero of=${obj}2 bs=32K count=1
-dd if=/dev/zero of=${obj}3 bs=64K count=1
-dd if=/dev/zero of=${obj}4 bs=16K count=1
-dd if=/dev/zero of=${obj}5 bs=128K count=1
-dd if=/dev/zero of=${obj}6 bs=4K count=1
-dd if=/dev/zero of=${obj}7 bs=512K count=1
+dd if=/dev/zero of=${obj}0 bs=512K count=1
+dd if=/dev/zero of=${obj}1 bs=1M count=1
+dd if=/dev/zero of=${obj}2 bs=1536K count=1
+dd if=/dev/zero of=${obj}3 bs=2560K count=1
+dd if=/dev/zero of=${obj}4 bs=4M count=1
+dd if=/dev/zero of=${obj}5 bs=6656K count=1
+dd if=/dev/zero of=${obj}6 bs=10752K count=1
+dd if=/dev/zero of=${obj}7 bs=17M count=1
 
 
 function wPool {
