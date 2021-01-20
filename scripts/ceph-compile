@@ -13,6 +13,7 @@ function installDeps {
   # Make sure all packages are up to date
   zypper ref
   zypper update -y
+  zypper install -y python3-Cython python3-remoto podman python3-podman docker python3-docker # For cephadm use
   zypper dup -y
 
   # Install all requirements to run tests
@@ -22,12 +23,12 @@ function installDeps {
   git checkout ceph/$buildBranch
   if [ "$buildBranch" == "nautilus" ]; then
     python -m pip install --upgrade pip
+    pip2 install --ignore-installed -r requirements.txt
   else
     # Doesn't exist in nautilus
     /ceph/install-deps-python3/bin/python -m pip install --upgrade pip
   fi
-  #pip2 install --ignore-installed -r requirements.txt
-  pip install --ignore-installed -r requirements.txt
+  pip3 install --ignore-installed --upgrade -r requirements.txt
 
   cd /ceph
   find . -name \*.pyc -delete
@@ -55,20 +56,16 @@ function compileCeph {
   cd /ceph
   #ARGS="-DWITH_PYTHON3=ON -DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 -DWITH_RADOSGW_AMQP_ENDPOINT=OFF -DENABLE_GIT_VERSION=OFF -DWITH_TESTS=ON -DWITH_CCACHE=ON $ARGS"
   ARGS="-DENABLE_GIT_VERSION=OFF -DWITH_TESTS=ON -DWITH_CCACHE=ON $ARGS"
-  ARGS="-DWITH_PYTHON3=ON -DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 -DWITH_RADOSGW_AMQP_ENDPOINT=OFF $ARGS"
+  if [ "$buildBranch" == "master" ]; then
+    ARGS="-DWITH_PYTHON3=3 -DWITH_RADOSGW_AMQP_ENDPOINT=OFF -DWITH_RADOSGW_KAFKA_ENDPOINT=OFF $ARGS"
+  else
+    ARGS="-DWITH_PYTHON3=ON -DWITH_PYTHON2=OFF -DMGR_PYTHON_VERSION=3 -DWITH_RADOSGW_AMQP_ENDPOINT=OFF $ARGS"
+  fi
 
   #Only if python3 stops working
   #ARGS="-D WITH_PYTHON3=ON -D WITH_TESTS=ON -D WITH_CCACHE=ON -D ENABLE_GIT_VERSION=OFF WITH_MGR_DASHBOARD_FRONTEND=OFF $ARGS"
 
   NPROC=${NPROC:-$(nproc --ignore=2)}
-
-  if [ "$MIMIC" == "true" ]; then
-      rm /usr/bin/gcc
-      rm /usr/bin/g++
-
-      ln -s /usr/bin/gcc-7 /usr/bin/gcc
-      ln -s /usr/bin/g++-7 /usr/bin/g++
-  fi
 
   if [ -d "build" ]; then
       cd build

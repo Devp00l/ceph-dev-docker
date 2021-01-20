@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+#set -e
 
 refresh=0
 
@@ -62,3 +62,22 @@ if [ "$refresh" -eq 1 ]; then
     echo "Refreshing device list, please wait ..."
     bin/ceph orch device ls --refresh
 fi
+
+cat <<EOF > /tmp/bootstrap.yml
+service_type: mon
+placement:
+  host_pattern: "mon*"
+---
+service_type: mgr
+placement:
+  host_pattern: "mgr*"
+---
+service_type: osd
+service_id: cephadm-managed
+placement:
+  host_pattern: "osd*"
+data_devices:
+  all: true
+EOF
+echo "Use the following command to bootstrap your hosts with cephadm:"
+echo "ceph orch apply -i /tmp/bootstrap.yml"

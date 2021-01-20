@@ -44,9 +44,9 @@ function confRgw {
 
 function createRbdPool {
   echo "Create rbd pool"
-  #rbd pool normal
   ceph osd pool create rbd.a 4
   ceph osd pool application enable rbd.a rbd
+  rbd create --size 1024 rbd.a/rbd1
 }
 
 function createCachePool {
@@ -97,7 +97,7 @@ function dashboard {
   # Development settings
   ceph dashboard set-enable-browsable-api true
   ceph dashboard set-audit-api-enabled true
-  ceph dashboard debug enable
+  # ceph dashboard debug enable
 
   echo "set port"
   # By setting the dashboard to a static port you don't have to rerun 'npm start' on every reload
@@ -166,7 +166,7 @@ function goCluster {
   #dashboard_externals
   mgrModules
   #mount_cephfs a # Let's the manager go wild after some time
-  startCephadm
+  #startCephadm
 }
 
 goCluster

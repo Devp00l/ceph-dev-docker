@@ -1,0 +1,11 @@
+#!/bin/bash
+#$1 = module name
+set -e
+
+echo "Reloading ceph module $1"
+ceph mgr module disable $1
+find /ceph/src/pybind -name \*.pyc -delete
+
+#sleep 2
+ceph mgr module enable $1 --force
+

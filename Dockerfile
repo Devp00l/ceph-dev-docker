@@ -41,8 +41,6 @@ ENV ZSH_DISABLE_COMPFIX true
 RUN /docker/install-omz.sh
 
 #Shells
-RUN wget -O /root/.zshrc "https://git.grml.org/?p=grml-etc-core.git;a=blob_plain;f=etc/zsh/zshrc;hb=HEAD"
-RUN echo "source /scripts/zshrc" >> /root/.zshrc
 RUN echo "source /scripts/bashrc" > /etc/bash.bashrc
 
 ENV CEPH_ROOT /ceph

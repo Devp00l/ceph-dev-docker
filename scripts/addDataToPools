@@ -2,14 +2,42 @@
 
 obj=/root/o
 
-dd if=/dev/zero of=${obj}0 bs=512K count=1
-dd if=/dev/zero of=${obj}1 bs=1M count=1
-dd if=/dev/zero of=${obj}2 bs=1536K count=1
-dd if=/dev/zero of=${obj}3 bs=2560K count=1
-dd if=/dev/zero of=${obj}4 bs=4M count=1
-dd if=/dev/zero of=${obj}5 bs=6656K count=1
-dd if=/dev/zero of=${obj}6 bs=10752K count=1
-dd if=/dev/zero of=${obj}7 bs=17M count=1
+function easy_mode {
+  dd if=/dev/zero of=${obj}0 bs=16K count=1
+  dd if=/dev/zero of=${obj}1 bs=32K count=1
+  dd if=/dev/zero of=${obj}2 bs=64K count=1
+  dd if=/dev/zero of=${obj}3 bs=128K count=1
+  dd if=/dev/zero of=${obj}4 bs=256K count=1
+  dd if=/dev/zero of=${obj}5 bs=512K count=1
+  dd if=/dev/zero of=${obj}6 bs=1M count=1
+  dd if=/dev/zero of=${obj}7 bs=2M count=1
+}
+
+function normal_mode {
+  dd if=/dev/zero of=${obj}0 bs=512K count=1
+  dd if=/dev/zero of=${obj}1 bs=1M count=1
+  dd if=/dev/zero of=${obj}2 bs=1536K count=1
+  dd if=/dev/zero of=${obj}3 bs=2560K count=1
+  dd if=/dev/zero of=${obj}4 bs=4M count=1
+  dd if=/dev/zero of=${obj}5 bs=6656K count=1
+  dd if=/dev/zero of=${obj}6 bs=10752K count=1
+  dd if=/dev/zero of=${obj}7 bs=17M count=1
+}
+
+function hard_mode {
+  dd if=/dev/zero of=${obj}0 bs=2M count=1
+  dd if=/dev/zero of=${obj}1 bs=4M count=1
+  dd if=/dev/zero of=${obj}2 bs=8M count=1
+  dd if=/dev/zero of=${obj}3 bs=16M count=1
+  dd if=/dev/zero of=${obj}4 bs=32M count=1
+  dd if=/dev/zero of=${obj}5 bs=64M count=1
+  dd if=/dev/zero of=${obj}6 bs=128M count=1
+  dd if=/dev/zero of=${obj}7 bs=256M count=1
+}
+
+# easy_mode
+normal_mode
+# hard_mode
 
 
 function wPool {
